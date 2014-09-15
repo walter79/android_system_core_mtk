@@ -1,8 +1,7 @@
-#if !defined(_XLOG_H)
-#define _XLOG_H
+#ifndef _LIBS_LOG_XLOG_H
+#define _LIBS_LOG_XLOG_H
 
-#include <cutils/log.h>
-#include <cutils/alelog.h>
+#include <log/log.h>
 
 #ifdef __cplusplus
 extern "C" {
