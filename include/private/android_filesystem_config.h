@@ -113,6 +113,12 @@
 #define AID_MOT_DLNA      9011  /* DLNA native */
 #endif // MOTOROLA_UIDS
 
+// MTK-specific UIDs
+#if defined(MTK_UIDS)
+#define AID_CCCI          9996  /* so what's a CCCI? */
+#define AID_NVRAM         9997  /* access to platform nvram */
+#endif // MTK_UIDS
+
 #define AID_MISC          9998  /* access to misc storage */
 #define AID_NOBODY        9999
 
@@ -202,6 +208,11 @@ static const struct android_id_info android_ids[] = {
     { "mot_whisper",   AID_MOT_WHISPER, },
     { "mot_caif",  AID_MOT_CAIF, },
     { "mot_dlna",  AID_MOT_DLNA, },
+#endif
+
+#if defined(MTK_UIDS)
+	{ "ccci",  AID_CCCI, },
+	{ "nvram", AID_NVRAM, },
 #endif
 
     { "misc",          AID_MISC, },
