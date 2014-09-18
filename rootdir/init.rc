@@ -517,8 +517,7 @@ service netd /system/bin/netd
     socket dnsproxyd stream 0660 root inet
     socket mdns stream 0660 root system
 
-service debuggerd /system/bin/debuggerd
-    class main
+# NOTE: debuggerd is replaced by aee_aed on MTK.
 
 # NOTE: MTK rild configuration is in init.modem.rc; stock definition removed.
 
