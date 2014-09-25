@@ -72,6 +72,9 @@ struct {
     { "net.lte",          AID_RADIO,    0 },
     { "net.cdma",         AID_RADIO,    0 },
     { "ril.",             AID_RADIO,    0 },
+    { "ril.cfu.querytype", AID_APP,   0 },
+    { "mux.",             AID_RADIO,    0 },
+    { "mux.",             AID_SYSTEM,    0 },
     { "gsm.",             AID_RADIO,    0 },
     { "persist.radio",    AID_RADIO,    0 },
     { "net.dns",          AID_RADIO,    0 },
@@ -86,6 +89,7 @@ struct {
     { "wlan.",            AID_SYSTEM,   0 },
     { "bluetooth.",       AID_BLUETOOTH,    0 },
     { "dhcp.",            AID_SYSTEM,   0 },
+    { "bwc.mm.",          AID_SYSTEM,   0 },
     { "dhcp.",            AID_DHCP,     0 },
     { "debug.",           AID_SYSTEM,   0 },
     { "debug.",           AID_SHELL,    0 },
@@ -102,6 +106,19 @@ struct {
     { "wc_transport.",     AID_BLUETOOTH,   AID_SYSTEM },
     { "net.pdp",          AID_RADIO,    AID_RADIO },
     { "service.bootanim.exit", AID_GRAPHICS, 0 },
+    { "gps.",             AID_GPS,     AID_SYSTEM },
+    { "persist.af.",      AID_MEDIA,   0 },
+    { "af.",              AID_MEDIA,   0 },
+    { "a2dp.",            AID_MEDIA,   0 },
+    { "streamin.",        AID_MEDIA,   0 },
+    { "streamout.",       AID_MEDIA,   0 },
+    { "bwc.mm.",          AID_MEDIA,   0 },
+    { "mediatek.",        AID_RADIO,   0 },
+    { "bt.",        AID_BLUETOOTH,    0 },
+    { "persist.bt.",      AID_BLUETOOTH,    0 },
+    { "persist.mtk.wcn.combo.",        AID_SYSTEM,    0 },
+    { "nvram_init",      AID_NVRAM,   0 },
+    { "persist.mtklog.",  AID_SHELL,   0 },
 #ifdef PROPERTY_PERMS_APPEND
 PROPERTY_PERMS_APPEND
 #endif
@@ -122,6 +139,9 @@ struct {
 } control_perms[] = {
     { "dumpstate",AID_SHELL, AID_LOG },
     { "ril-daemon",AID_RADIO, AID_RADIO },
+    { "muxreport-daemon", AID_RADIO, AID_RADIO },
+    { "md_minilog_util", AID_RADIO, AID_RADIO},
+    { "sysctl", AID_SHELL, AID_SHELL},
 #ifdef CONTROL_PERMS_APPEND
 CONTROL_PERMS_APPEND
 #endif
