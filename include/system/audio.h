@@ -528,6 +528,7 @@ enum {
     AUDIO_DEVICE_IN_FM_RX_A2DP            = AUDIO_DEVICE_BIT_IN | 0x10000,
 #endif
     AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_BIT_IN | AUDIO_DEVICE_BIT_DEFAULT,
+#endif
 
 #ifdef MTK_AUDIO
     AUDIO_DEVICE_IN_FM                    = AUDIO_DEVICE_BIT_IN | 0x1000000,
