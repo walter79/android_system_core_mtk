@@ -60,6 +60,12 @@ typedef enum {
     AUDIO_STREAM_INCALL_MUSIC     = 10,
 #endif
 
+#ifdef MTK_AUDIO
+    AUDIO_STREAM_FM               = 10,
+    AUDIO_STREAM_MATV             = 11,
+    AUDIO_STREAM_BOOT             = 12, //only used for bootanimation and output from speaker and headset
+#endif
+
     AUDIO_STREAM_CNT,
     AUDIO_STREAM_MAX              = AUDIO_STREAM_CNT - 1,
 } audio_stream_type_t;
@@ -82,6 +88,16 @@ typedef enum {
                                           /*  play the mix captured by this audio source.      */
     AUDIO_SOURCE_FM_RX               = 9,
     AUDIO_SOURCE_FM_RX_A2DP          = 10,
+
+#ifndef ANDROID_DEFAULT_CODE
+    AUDIO_SOURCE_VOICE_UNLOCK =80,
+    AUDIO_SOURCE_CUSTOMIZATION1 =81,
+    AUDIO_SOURCE_CUSTOMIZATION2 =82,
+    AUDIO_SOURCE_CUSTOMIZATION3 =83,
+    AUDIO_SOURCE_MATV =98,
+    AUDIO_SOURCE_FM =99,
+#endif
+
     AUDIO_SOURCE_CNT,
     AUDIO_SOURCE_MAX                 = AUDIO_SOURCE_CNT - 1,
     AUDIO_SOURCE_HOTWORD             = 1999, /* A low-priority, preemptible audio source for
@@ -225,6 +241,10 @@ typedef enum {
                                         AUDIO_FORMAT_PCM_SUB_16_BIT),
     AUDIO_FORMAT_PCM_24_BIT_OFFLOAD  = (AUDIO_FORMAT_PCM_OFFLOAD |
                                         AUDIO_FORMAT_PCM_SUB_8_24_BIT),
+
+#ifdef MTK_AUDIO
+    AUDIO_FORMAT_VM_FMT,
+#endif
 } audio_format_t;
 
 enum {
@@ -378,6 +398,10 @@ typedef enum {
     AUDIO_MODE_IN_CALL          = 2,
     AUDIO_MODE_IN_COMMUNICATION = 3,
 
+#ifdef MTK_AUDIO
+    AUDIO_MODE_IN_CALL_2        = 4,
+#endif
+
     AUDIO_MODE_CNT,
     AUDIO_MODE_MAX              = AUDIO_MODE_CNT - 1,
 } audio_mode_t;
@@ -426,6 +450,11 @@ enum {
     AUDIO_DEVICE_OUT_SPDIF                     = 0x200000,
 #endif
     AUDIO_DEVICE_OUT_DEFAULT                   = AUDIO_DEVICE_BIT_DEFAULT,
+
+#ifdef MTK_AUDIO
+    AUDIO_DEVICE_OUT_FM_TX                     = 0x10000,
+#endif
+
     AUDIO_DEVICE_OUT_ALL      = (AUDIO_DEVICE_OUT_EARPIECE |
                                  AUDIO_DEVICE_OUT_SPEAKER |
                                  AUDIO_DEVICE_OUT_WIRED_HEADSET |
@@ -499,6 +528,10 @@ enum {
     AUDIO_DEVICE_IN_FM_RX_A2DP            = AUDIO_DEVICE_BIT_IN | 0x10000,
 #endif
     AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_BIT_IN | AUDIO_DEVICE_BIT_DEFAULT,
+
+#ifdef MTK_AUDIO
+    AUDIO_DEVICE_IN_FM                    = AUDIO_DEVICE_BIT_IN | 0x1000000,
+    AUDIO_DEVICE_IN_AUX_DIGITAL2          = AUDIO_DEVICE_BIT_IN | 0x8000000,
 #endif
 
     AUDIO_DEVICE_IN_ALL     = (AUDIO_DEVICE_IN_COMMUNICATION |
@@ -520,6 +553,7 @@ enum {
                                AUDIO_DEVICE_IN_FM_RX |
                                AUDIO_DEVICE_IN_FM_RX_A2DP |
 #endif
+                               AUDIO_DEVICE_IN_AUX_DIGITAL2 |
                                AUDIO_DEVICE_IN_DEFAULT),
     AUDIO_DEVICE_IN_ALL_SCO = AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET,
 };
@@ -651,12 +685,31 @@ static inline bool audio_is_a2dp_device(audio_devices_t device)
 
 static inline bool audio_is_bluetooth_sco_device(audio_devices_t device)
 {
+#ifdef MTK_AUDIO
+    if(audio_is_input_device(device))
+    {
+    device &= ~AUDIO_DEVICE_BIT_IN;
+    if ((popcount(device) == 1) && (device &
+                   (AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET& ~AUDIO_DEVICE_BIT_IN)))
+        return true;
+    else
+        return false;
+    }else//output device
+    {
+        if ((popcount(device) == 1) && (device & AUDIO_DEVICE_OUT_ALL_SCO))
+            return true;
+        else
+            return false;
+
+    }
+#else //Android Error - Cause device checking fail
     device &= ~AUDIO_DEVICE_BIT_IN;
     if ((popcount(device) == 1) && (device & (AUDIO_DEVICE_OUT_ALL_SCO |
                    AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET)))
         return true;
     else
         return false;
+#endif
 }
 
 static inline bool audio_is_usb_device(audio_devices_t device)
