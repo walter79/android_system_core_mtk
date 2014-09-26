@@ -76,7 +76,7 @@ struct svcenvinfo {
 #define SVC_RESTART     0x100 /* Use to safely restart (stop, wait, start) a service */
 
 #ifndef NR_SVC_SUPP_GIDS
-#define NR_SVC_SUPP_GIDS 12    /* twelve supplementary groups */
+#define NR_SVC_SUPP_GIDS 16    /* 16 supplementary groups -- MTK needs lots of these */
 #endif
 
 #define COMMAND_RETRY_TIMEOUT 5
