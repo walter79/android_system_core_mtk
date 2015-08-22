@@ -612,12 +612,14 @@ service surfaceflinger /system/bin/surfaceflinger
 service drm /system/bin/drmserver
     class main
     user drm
-    group drm system inet drmrpc
+    # MTK
+    group drm system inet drmrpc sdcard_r
 
 service media /system/bin/mediaserver
     class main
-    user media
-    group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm qcom_diag
+    # MTK
+    user root
+    group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm qcom_diag media sdcard_r system net_bt_stack
     ioprio rt 4
 
 # One shot invocation to deal with encrypted volume.
@@ -637,7 +639,8 @@ service encrypt /system/bin/vdc --wait cryptfs enablecrypto inplace default
 service bootanim /system/bin/bootanimation
     class core
     user graphics
-    group graphics audio
+    # MTK
+    group graphics media audio
     disabled
     oneshot
 
