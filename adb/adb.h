@@ -339,6 +339,8 @@ int adb_commandline(int argc, const char **argv);
 
 int connection_state(atransport *t);
 
+extern int recovery_mode;
+
 #define CS_ANY       -1
 #define CS_OFFLINE    0
 #define CS_BOOTLOADER 1
@@ -350,6 +352,9 @@ int connection_state(atransport *t);
 #define CS_UNAUTHORIZED 7
 
 extern const char *adb_device_banner;
+
+#define CS_ONLINE    10 /* recovery or device */
+
 extern int HOST;
 extern int SHELL_EXIT_NOTIFY_FD;
 

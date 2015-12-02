@@ -44,7 +44,7 @@ struct import {
     const char *filename;
 };
 
-static void *parse_service(struct parse_state *state, int nargs, char **args);
+static void *parse_service(struct parse_state *state, int nargs, char **args, bool redefine);
 static void parse_line_service(struct parse_state *state, int nargs, char **args);
 
 static void *parse_action(struct parse_state *state, int nargs, char **args);
@@ -159,7 +159,7 @@ static int lookup_keyword(const char *s)
     case 'l':
         if (!strcmp(s, "oglevel")) return K_loglevel;
         if (!strcmp(s, "oad_persist_props")) return K_load_persist_props;
-        if (!strcmp(s, "oad_all_props")) return K_load_all_props;
+        if (!strcmp(s, "oad_system_props")) return K_load_system_props;
         break;
     case 'm':
         if (!strcmp(s, "kdir")) return K_mkdir;
@@ -184,9 +184,11 @@ static int lookup_keyword(const char *s)
     case 's':
         if (!strcmp(s, "eclabel")) return K_seclabel;
         if (!strcmp(s, "ervice")) return K_service;
+        if (!strcmp(s, "ervice_redefine")) return K_service_redefine;
         if (!strcmp(s, "etenv")) return K_setenv;
         if (!strcmp(s, "etprop")) return K_setprop;
         if (!strcmp(s, "etrlimit")) return K_setrlimit;
+        if (!strcmp(s, "etusercryptopolicies")) return K_setusercryptopolicies;
         if (!strcmp(s, "ocket")) return K_socket;
         if (!strcmp(s, "tart")) return K_start;
         if (!strcmp(s, "top")) return K_stop;
@@ -361,7 +363,8 @@ static void parse_new_section(struct parse_state *state, int kw,
            nargs > 1 ? args[1] : "");
     switch(kw) {
     case K_service:
-        state->context = parse_service(state, nargs, args);
+    case K_service_redefine:
+        state->context = parse_service(state, nargs, args, (kw == K_service_redefine));
         if (state->context) {
             state->parse_line = parse_line_service;
             return;
@@ -571,7 +574,7 @@ void queue_property_triggers(const char *name, const char *value)
 
     list_for_each(node, &action_list) {
         act = node_to_item(node, struct action, alist);
-            match = !name;
+        match = !name;
         list_for_each(node2, &act->triggers) {
             cur_trigger = node_to_item(node2, struct trigger, nlist);
             if (!strncmp(cur_trigger->name, "property:", strlen("property:"))) {
@@ -585,29 +588,28 @@ void queue_property_triggers(const char *name, const char *value)
                         match = true;
                         continue;
                     }
-                } else {
-                     const char* equals = strchr(test, '=');
-                     if (equals) {
-                         char prop_name[PROP_NAME_MAX + 1];
-                         char value[PROP_VALUE_MAX];
-                         int length = equals - test;
-                         if (length <= PROP_NAME_MAX) {
-                             int ret;
-                             memcpy(prop_name, test, length);
-                             prop_name[length] = 0;
+                }
+                const char* equals = strchr(test, '=');
+                if (equals) {
+                    char prop_name[PROP_NAME_MAX + 1];
+                    char value[PROP_VALUE_MAX];
+                    int length = equals - test;
+                    if (length <= PROP_NAME_MAX) {
+                        int ret;
+                        memcpy(prop_name, test, length);
+                        prop_name[length] = 0;
 
-                             /* does the property exist, and match the trigger value? */
-                             ret = property_get(prop_name, value);
-                             if (ret > 0 && (!strcmp(equals + 1, value) ||
-                                !strcmp(equals + 1, "*"))) {
-                                 continue;
-                             }
-                         }
-                     }
-                 }
-             }
-             match = false;
-             break;
+                        /* does the property exist, and match the trigger value? */
+                        ret = property_get(prop_name, value);
+                        if (ret > 0 && (!strcmp(equals + 1, value) ||
+                                        !strcmp(equals + 1, "*"))) {
+                            continue;
+                        }
+                    }
+                }
+            }
+            match = false;
+            break;
         }
         if (match) {
             action_add_queue_tail(act);
@@ -725,7 +727,7 @@ service* make_exec_oneshot_service(int nargs, char** args) {
     return svc;
 }
 
-static void *parse_service(struct parse_state *state, int nargs, char **args)
+static void *parse_service(struct parse_state *state, int nargs, char **args, bool redefine)
 {
     if (nargs < 3) {
         parse_error(state, "services must have a name and a program\n");
@@ -737,13 +739,18 @@ static void *parse_service(struct parse_state *state, int nargs, char **args)
     }
 
     service* svc = (service*) service_find_by_name(args[1]);
-    if (svc) {
+    if (svc && !redefine) {
         parse_error(state, "ignored duplicate definition of service '%s'\n", args[1]);
         return 0;
     }
 
     nargs -= 2;
-    svc = (service*) calloc(1, sizeof(*svc) + sizeof(char*) * nargs);
+
+    if (!svc) {
+        svc = (service*) calloc(1, sizeof(*svc) + sizeof(char*) * nargs);
+        redefine = false;
+    }
+
     if (!svc) {
         parse_error(state, "out of memory\n");
         return 0;
@@ -758,7 +765,8 @@ static void *parse_service(struct parse_state *state, int nargs, char **args)
     cur_trigger->name = "onrestart";
     list_add_tail(&svc->onrestart.triggers, &cur_trigger->nlist);
     list_init(&svc->onrestart.commands);
-    list_add_tail(&service_list, &svc->slist);
+    if (!redefine)
+        list_add_tail(&service_list, &svc->slist);
     return svc;
 }
 

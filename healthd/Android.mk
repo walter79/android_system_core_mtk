@@ -25,6 +25,18 @@ LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_SBIN_UNSTRIPPED)
 
 LOCAL_CFLAGS := -D__STDC_LIMIT_MACROS -Werror
 
+HEALTHD_CHARGER_DEFINES := RED_LED_PATH \
+    GREEN_LED_PATH \
+    BLUE_LED_PATH \
+    BACKLIGHT_PATH \
+    CHARGING_ENABLED_PATH
+
+$(foreach healthd_charger_define,$(HEALTHD_CHARGER_DEFINES), \
+  $(if $($(healthd_charger_define)), \
+    $(eval LOCAL_CFLAGS += -D$(healthd_charger_define)=\"$($(healthd_charger_define))\") \
+  ) \
+)
+
 ifeq ($(strip $(BOARD_CHARGER_DISABLE_INIT_BLANK)),true)
 LOCAL_CFLAGS += -DCHARGER_DISABLE_INIT_BLANK
 endif
@@ -45,7 +57,7 @@ LOCAL_HAL_STATIC_LIBRARIES := libhealthd
 
 # Symlink /charger to /sbin/healthd
 LOCAL_POST_INSTALL_CMD := $(hide) mkdir -p $(TARGET_ROOT_OUT) \
-    && ln -sf /sbin/healthd $(TARGET_ROOT_OUT)/charger
+    && rm -f $(TARGET_ROOT_OUT)/charger && ln -sf /sbin/healthd $(TARGET_ROOT_OUT)/charger
 
 include $(BUILD_EXECUTABLE)
 
@@ -63,8 +75,13 @@ include $$(BUILD_PREBUILT)
 endef
 
 _img_modules :=
+ifeq ($(strip $(BOARD_HEALTHD_CUSTOM_CHARGER_RES)),)
+IMAGES_DIR := images
+else
+IMAGES_DIR := ../../../$(BOARD_HEALTHD_CUSTOM_CHARGER_RES)
+endif
 _images :=
-$(foreach _img, $(call find-subdir-subdir-files, "images", "*.png"), \
+$(foreach _img, $(call find-subdir-subdir-files, "$(IMAGES_DIR)", "*.png"), \
   $(eval $(call _add-charger-image,$(_img))))
 
 include $(CLEAR_VARS)

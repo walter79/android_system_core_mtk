@@ -39,6 +39,7 @@
 #include <cutils/partition_utils.h>
 #include <cutils/properties.h>
 #include <logwrap/logwrap.h>
+#include <blkid/blkid.h>
 
 #include "mincrypt/rsa.h"
 #include "mincrypt/sha.h"
@@ -60,6 +61,7 @@
 #define FSCK_LOG_FILE   "/dev/fscklogs/log"
 
 #define ZRAM_CONF_DEV   "/sys/block/zram0/disksize"
+#define ZRAM_STREAMS    "/sys/block/zram0/max_comp_streams"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(*(a)))
 
@@ -304,6 +306,8 @@ static int mount_with_alternatives(struct fstab *fstab, int start_idx, int *end_
     int i;
     int mount_errno = 0;
     int mounted = 0;
+    int cmp_len;
+    char *detected_fs_type;
 
     if (!end_idx || !attempted_idx || start_idx >= fstab->num_entries) {
       errno = EINVAL;
@@ -329,8 +333,16 @@ static int mount_with_alternatives(struct fstab *fstab, int start_idx, int *end_
             }
 
             if (fstab->recs[i].fs_mgr_flags & MF_CHECK) {
-                check_fs(fstab->recs[i].blk_device, fstab->recs[i].fs_type,
-                         fstab->recs[i].mount_point);
+                /* Skip file system check unless we are sure we are the right type */
+                detected_fs_type = blkid_get_tag_value(NULL, "TYPE", fstab->recs[i].blk_device);
+                if (detected_fs_type) {
+                    cmp_len = (!strncmp(detected_fs_type, "ext", 3) &&
+                            strlen(detected_fs_type) == 4) ? 3 : strlen(detected_fs_type);
+                    if (!strncmp(fstab->recs[i].fs_type, detected_fs_type, cmp_len)) {
+                        check_fs(fstab->recs[i].blk_device, fstab->recs[i].fs_type,
+                                 fstab->recs[i].mount_point);
+                    }
+                }
             }
             if (!__mount(fstab->recs[i].blk_device, fstab->recs[i].mount_point, &fstab->recs[i])) {
                 *attempted_idx = i;
@@ -859,6 +871,14 @@ int fs_mgr_swapon_all(struct fstab *fstab)
              * we can assume the device number is 0.
              */
             FILE *zram_fp;
+
+            /* The stream count parameter is only available on new kernels.
+             * It must be set before the disk size. */
+            zram_fp = fopen(ZRAM_STREAMS, "r+");
+            if (zram_fp) {
+                fprintf(zram_fp, "%d\n", fstab->recs[i].zram_streams);
+                fclose(zram_fp);
+            }
 
             zram_fp = fopen(ZRAM_CONF_DEV, "r+");
             if (zram_fp == NULL) {
