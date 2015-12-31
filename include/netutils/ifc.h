@@ -61,6 +61,12 @@ extern int ifc_configure(const char *ifname, in_addr_t address,
 
 extern in_addr_t prefixLengthToIpv4Netmask(int prefix_length);
 
+/* MTK */
+#ifdef MTK_HARDWARE
+extern int ifc_set_txq_state(const char *ifname, int state);
+extern int ifc_ccmni_md_cfg(const char *ifname, int md_id);
+#endif /* MTK_HARDWARE */
+
 __END_DECLS
 
 #endif /* _NETUTILS_IFC_H_ */
