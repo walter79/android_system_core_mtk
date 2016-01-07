@@ -813,7 +813,7 @@ static void export_kernel_boot_props() {
         { "ro.boot.mode",       "ro.bootmode",   "unknown", },
         { "ro.boot.baseband",   "ro.baseband",   "unknown", },
         { "ro.boot.bootloader", "ro.bootloader", "unknown", },
-        { "ro.boot.hardware",   "ro.hardware",   "unknown", },
+        { "ro.boot.hardware",   "ro.hardware",   "mt6595", },
 #ifndef IGNORE_RO_BOOT_REVISION
         { "ro.boot.revision",   "ro.revision",   "0", },
 #endif
@@ -911,6 +911,8 @@ static selinux_enforcing_status selinux_status_from_cmdline() {
 
 static bool selinux_is_disabled(void)
 {
+	return true;
+/*
     if (ALLOW_DISABLE_SELINUX) {
         if (access("/sys/fs/selinux", F_OK) != 0) {
             // SELinux is not compiled into the kernel, or has been disabled
@@ -921,6 +923,7 @@ static bool selinux_is_disabled(void)
     }
 
     return false;
+*/
 }
 
 static bool selinux_is_enforcing(void)
