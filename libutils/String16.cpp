@@ -145,27 +145,6 @@ String16::String16(const char16_t* o, size_t len)
     mString = getEmptyString();
 }
 
-#ifdef MTK_HARDWARE
-extern "C" void _ZN7android8String16C1EPKDs(const char16_t*);
-extern "C" void _ZN7android8String16C1EPKDsj(const char16_t*, size_t);
-extern "C" status_t _ZN7android8String165setToEPKDsj(const char16_t*, size_t);
-
-extern "C" void _ZN7android8String16C1EPKt(const char16_t* o)
-{
-	_ZN7android8String16C1EPKDs(o);
-}
-
-extern "C" void _ZN7android8String16C1EPKtj(const char16_t* o, size_t len)
-{
-	_ZN7android8String16C1EPKDsj(o, len);
-}
-
-extern "C" status_t _ZN7android8String165setToEPKtj(const char16_t* other, size_t len)
-{
-	return _ZN7android8String165setToEPKDsj(other, len);
-}
-#endif  // MTK_HARDWARE
-
 String16::String16(const String8& o)
     : mString(allocFromUTF8(o.string(), o.size()))
 {
