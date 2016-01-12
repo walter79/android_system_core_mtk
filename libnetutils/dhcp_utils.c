@@ -216,6 +216,18 @@ int dhcp_do_request(const char *interface,
     /* Erase any previous setting of the dhcp result property */
     property_set(result_prop_name, "");
 
+    /* HACK: Sometimes the lease file appears to be corrupted, which can cause
+     * unknown errors while obtaining an address. We just remove the corresponding
+     * lease file prior to starting the daemon...
+     */
+    {
+        char lease_file_path[PROPERTY_VALUE_MAX];
+        snprintf(lease_file_path, sizeof(lease_file_path),
+                "/data/misc/dhcp/dhcpcd-%s.lease",
+                p2p_interface);
+        unlink(lease_file_path);
+    }
+
     /* Start the daemon and wait until it's ready */
     if (property_get(HOSTNAME_PROP_NAME, prop_value, NULL) && (prop_value[0] != '\0'))
         snprintf(daemon_cmd, sizeof(daemon_cmd), "%s_%s:-f %s -h %s %s", DAEMON_NAME,
