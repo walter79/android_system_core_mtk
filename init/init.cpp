@@ -85,7 +85,9 @@ int have_console;
 std::string console_name = "/dev/console";
 static time_t process_needs_restart;
 
-const char *ENV[32];
+// xen0n: some MTK services (e.g. ril-daemon-mtk) require very large number
+// of sockets, which can't be contained in 32 entries minus other variables.
+const char *ENV[64];
 
 bool waiting_for_exec = false;
 
