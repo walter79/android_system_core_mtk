@@ -147,6 +147,7 @@ BatteryMonitor::PowerSupplyType BatteryMonitor::readPowerSupplyType(const String
             { "Wipower", ANDROID_POWER_SUPPLY_TYPE_WIRELESS },
             { "DockBattery", ANDROID_POWER_SUPPLY_TYPE_DOCK_BATTERY },
             { "DockAC", ANDROID_POWER_SUPPLY_TYPE_DOCK_AC },
+            { "DASH", ANDROID_POWER_SUPPLY_TYPE_AC },
             { NULL, 0 },
     };
 
@@ -839,19 +840,15 @@ void BatteryMonitor::init(struct healthd_config *hc) {
         closedir(dir);
     }
 
-    // This indicates that there is no charger driver registered.
     // Typically the case for devices which do not have a battery and
     // and are always plugged into AC mains.
-    if (!mChargerNames.size()) {
-        KLOG_ERROR(LOG_TAG, "No charger supplies found\n");
-        mBatteryFixedCapacity = ALWAYS_PLUGGED_CAPACITY;
-        mBatteryFixedTemperature = FAKE_BATTERY_TEMPERATURE;
-        mAlwaysPluggedDevice = true;
-    }
     if (!mBatteryDevicePresent && !mDockBatteryDevicePresent) {
         KLOG_WARNING(LOG_TAG, "No battery devices found\n");
         hc->periodic_chores_interval_fast = -1;
         hc->periodic_chores_interval_slow = -1;
+        mBatteryFixedCapacity = ALWAYS_PLUGGED_CAPACITY;
+        mBatteryFixedTemperature = FAKE_BATTERY_TEMPERATURE;
+        mAlwaysPluggedDevice = true;
     } else {
         if (mHealthdConfig->batteryStatusPath.isEmpty())
             KLOG_WARNING(LOG_TAG, "BatteryStatusPath not found\n");
